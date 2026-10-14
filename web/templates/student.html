@@ -1,0 +1,1099 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<section class="dash-head">
+    <div>
+        <div class="eyebrow">STUDENT WORKSPACE</div>
+        <h1>Welcome, {{ student.Name.split(' ')[0] }} 👋</h1>
+        <p>Your private academic dashboard. This view contains only your authorised performance data.</p>
+    </div>
+
+    <div class="head-badge">
+        {{ student.Student_ID }} · {{ student.Department }}
+    </div>
+</section>
+
+
+<section class="metric-grid">
+
+    <div class="metric">
+        <span>Performance score</span>
+        <strong>{{ student.Performance_Score }}</strong>
+        <small>/ 100</small>
+    </div>
+
+    <div class="metric">
+        <span>Status</span>
+        <strong class="status-text">{{ student.Performance_Status }}</strong>
+        <small>Current category</small>
+    </div>
+
+    <div class="metric">
+        <span>Attendance</span>
+        <strong>{{ '%.1f'|format(student.Attendance) }}%</strong>
+        <small>Academic continuity</small>
+    </div>
+
+    <div class="metric {% if student.Risk_Level == 'High' %}danger{% endif %}">
+        <span>Risk level</span>
+        <strong>{{ student.Risk_Level }}</strong>
+        <small>Risk score {{ student.Risk_Score }}</small>
+    </div>
+
+</section>
+
+
+<div class="three-grid">
+
+    <section class="panel insight-panel">
+
+        <div class="section-title">
+            <div>
+                <span class="icon-bubble">🔍</span>
+                <div>
+                    <h2>Student Insight Engine</h2>
+                    <small>Your key academic signals</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="primary-insight">
+            <span>Primary insight</span>
+            <b>{{ student.Primary_Insight }}</b>
+        </div>
+
+        <div class="insight-row">
+            <span>Department average</span>
+            <b>{{ student.Department_Average }}</b>
+        </div>
+
+        <div class="insight-row">
+            <span>Your gap</span>
+            <b>{{ '%+.1f'|format(student.Performance_Gap) }}</b>
+        </div>
+
+        <div class="insight-row">
+            <span>Final marks</span>
+            <b>{{ student.Final_Marks }}</b>
+        </div>
+
+        <div class="insight-row">
+            <span>Quiz / Practical</span>
+            <b>{{ student.Quiz_Average }} / {{ student.Practical_Score }}</b>
+        </div>
+
+    </section>
+
+
+    <section class="panel">
+
+        <div class="section-title">
+            <div>
+                <span class="icon-bubble">💪</span>
+                <div>
+                    <h2>Strengths</h2>
+                    <small>Areas currently performing well</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="tag-list">
+
+            {% for x in student.Strengths %}
+                <span class="tag positive">✓ {{ x }}</span>
+            {% else %}
+                <span class="muted">
+                    Keep building strong areas through regular practice.
+                </span>
+            {% endfor %}
+
+        </div>
+
+
+        <div class="section-title sub">
+
+            <div>
+                <span class="icon-bubble">🎯</span>
+
+                <div>
+                    <h2>Areas to Improve</h2>
+                    <small>Priority focus areas</small>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="tag-list">
+
+            {% for x in student.Improvement_Areas %}
+                <span class="tag focus">{{ x }}</span>
+            {% else %}
+                <span class="muted">
+                    No major low-score area detected.
+                </span>
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+
+    <section class="panel risk-card">
+
+        <div class="section-title">
+
+            <div>
+                <span class="icon-bubble">🚨</span>
+
+                <div>
+                    <h2>Risk Assessment</h2>
+                    <small>Explainable rule-based assessment</small>
+                </div>
+            </div>
+
+            <span class="badge {{ student.Risk_Level|lower }}">
+                {{ student.Risk_Level }}
+            </span>
+
+        </div>
+
+        <div class="risk-score">
+            <b>{{ student.Risk_Score }}</b>
+            <span>Risk points</span>
+        </div>
+
+        <p class="muted">
+            The score considers attendance, study hours, final marks,
+            practicals, assignments and quizzes.
+        </p>
+
+    </section>
+
+</div>
+
+
+<!-- MY COMPETENCY GAPS -->
+
+<section class="panel">
+
+    <div class="section-title">
+
+        <div>
+            <span class="icon-bubble">🎯</span>
+
+            <div>
+                <h2>My Competency Gaps</h2>
+                <small>
+                    Areas where focused learning can improve your performance
+                </small>
+            </div>
+        </div>
+
+    </div>
+
+
+    {% if student.Improvement_Areas %}
+
+        <div class="recommend-grid">
+
+            {% for area in student.Improvement_Areas %}
+
+                <div>
+                    <strong>{{ area }}</strong>
+
+                    <br>
+
+                    <span class="muted">
+                        Focus on regular practice and targeted improvement
+                        in this area.
+                    </span>
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="primary-insight">
+
+            <span>Current learning status</span>
+
+            <b>
+                No major competency gap detected.
+            </b>
+
+        </div>
+
+    {% endif %}
+
+</section>
+
+
+<!-- PERSONALISED LEARNING PLAN -->
+
+<section class="panel">
+
+    <div class="section-title">
+
+        <div>
+            <span class="icon-bubble">📚</span>
+
+            <div>
+                <h2>My Personalised Learning Plan</h2>
+                <small>
+                    Suggested learning actions based on your current performance
+                </small>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    {% if student.Improvement_Areas %}
+
+        <div class="recommend-grid">
+
+            {% for area in student.Improvement_Areas %}
+
+                <div>
+
+                    <strong>
+                        🎯 Focus: {{ area }}
+                    </strong>
+
+                    <br><br>
+
+                    <span>
+                        <b>Step 1:</b>
+                        Review the concepts related to {{ area }}.
+                    </span>
+
+                    <br>
+
+                    <span>
+                        <b>Step 2:</b>
+                        Practise questions or activities related to this area.
+                    </span>
+
+                    <br>
+
+                    <span>
+                        <b>Step 3:</b>
+                        Take a short self-test and review mistakes.
+                    </span>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="primary-insight">
+
+            <span>Learning plan</span>
+
+            <b>
+                Continue regular revision, practice and self-assessment.
+            </b>
+
+        </div>
+
+    {% endif %}
+
+
+    <div class="recommend-grid" style="margin-top:18px;">
+
+        <div>
+            <strong>📅 Daily routine</strong>
+            <br>
+            <span class="muted">
+                Maintain a consistent study routine and divide study time
+                between weak areas, assignments and revision.
+            </span>
+        </div>
+
+        <div>
+            <strong>📝 Practice</strong>
+            <br>
+            <span class="muted">
+                Use practice questions and short quizzes to check your
+                understanding.
+            </span>
+        </div>
+
+        <div>
+            <strong>🔄 Review</strong>
+            <br>
+            <span class="muted">
+                Review mistakes regularly and track improvement over time.
+            </span>
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- PERSONALISED RECOMMENDATIONS -->
+
+<section class="panel">
+
+    <div class="section-title">
+
+        <div>
+            <span class="icon-bubble">💡</span>
+
+            <div>
+                <h2>Personalised Recommendations</h2>
+                <small>Based on your current profile</small>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="recommend-grid">
+
+        {% for r in student.Recommendations %}
+
+            <div>
+                ✓ {{ r }}
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+
+<!-- WHAT IF + AI -->
+
+<div class="dashboard-grid">
+
+
+    <section class="panel whatif">
+
+        <div class="section-title">
+
+            <div>
+                <span class="icon-bubble">🔄</span>
+
+                <div>
+                    <h2>What-If Simulator</h2>
+                    <small>
+                        Explore attendance and study-hour scenarios
+                    </small>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="slider-row">
+
+            <label>
+
+                Attendance
+
+                <b id="attVal">
+                    {{ '%.0f'|format(student.Attendance) }}%
+                </b>
+
+                <input
+                    id="att"
+                    type="range"
+                    min="40"
+                    max="100"
+                    value="{{ student.Attendance }}"
+                    oninput="runWhatIf()"
+                >
+
+            </label>
+
+
+            <label>
+
+                Study hours
+
+                <b id="studyVal">
+                    {{ '%.1f'|format(student.Study_Hours) }}
+                </b>
+
+                <input
+                    id="study"
+                    type="range"
+                    min="0"
+                    max="8"
+                    step="0.5"
+                    value="{{ student.Study_Hours }}"
+                    oninput="runWhatIf()"
+                >
+
+            </label>
+
+        </div>
+
+
+        <div class="whatif-result">
+
+            <div>
+                <span>Simulated score</span>
+                <b id="simScore">
+                    {{ student.Performance_Score }}
+                </b>
+            </div>
+
+            <div>
+                <span>Status</span>
+                <b id="simStatus">
+                    {{ student.Performance_Status }}
+                </b>
+            </div>
+
+            <div>
+                <span>Change</span>
+                <b id="simChange">
+                    0.0
+                </b>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- STUDENT STUDY ASSISTANT -->
+
+    <section class="panel ai-panel">
+
+        <div class="section-title">
+
+            <div>
+                <span class="icon-bubble">🤖</span>
+
+                <div>
+                    <h2>AI Study & Time Management</h2>
+                    <small>
+                        Personalised to your account
+                    </small>
+                </div>
+
+            </div>
+
+            <span class="ai-status">
+                ● Ready
+            </span>
+
+        </div>
+
+
+        <div class="quick-prompts">
+
+            <button onclick="ask('Make a study plan for me')">
+                Study plan
+            </button>
+
+            <button onclick="ask('Explain my performance')">
+                Explain performance
+            </button>
+
+            <button onclick="ask('How is my attendance?')">
+                Attendance
+            </button>
+
+            <button onclick="ask('What should I improve first?')">
+                Improvement
+            </button>
+
+        </div>
+
+
+        <div id="chat" class="chat">
+
+            <div class="ai-msg">
+
+                Hi {{ student.Name.split(' ')[0] }}!
+
+                Ask me for a study plan,
+                time-management schedule,
+                performance explanation
+                or improvement guidance.
+
+            </div>
+
+        </div>
+
+
+        <form id="aiForm" class="chat-form">
+
+            <input
+                id="q"
+                placeholder="Ask your AI assistant..."
+                required
+            >
+
+            <input
+                id="hours"
+                type="number"
+                min="1"
+                max="8"
+                value="3"
+                title="Available study hours"
+            >
+
+            <button class="btn">
+                Ask AI
+            </button>
+
+        </form>
+
+    </section>
+
+</div>
+
+
+<script>
+
+const f = document.getElementById('aiForm');
+const q = document.getElementById('q');
+const h = document.getElementById('hours');
+const c = document.getElementById('chat');
+
+
+function add(cls, t) {
+
+    const d = document.createElement('div');
+
+    d.className = cls;
+
+    d.textContent = t;
+
+    c.appendChild(d);
+
+    c.scrollTop = c.scrollHeight;
+
+}
+
+
+function ask(t) {
+
+    q.value = t;
+
+    f.dispatchEvent(
+        new Event('submit', {
+            cancelable: true,
+            bubbles: true
+        })
+    );
+
+}
+
+
+f.onsubmit = async (e) => {
+
+    e.preventDefault();
+
+    if (!q.value.trim()) {
+        return;
+    }
+
+    const question = q.value;
+
+    add('user-msg', question);
+
+    try {
+
+        const r = await fetch(
+            '{{ url_for("student_ai") }}',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    question: question,
+                    hours: h.value
+                })
+            }
+        );
+
+        const d = await r.json();
+
+        add(
+            'ai-msg',
+            d.answer || 'I could not generate a response.'
+        );
+
+    } catch (error) {
+
+        add(
+            'ai-msg',
+            'Unable to connect to the study assistant right now.'
+        );
+
+    }
+
+    q.value = '';
+
+};
+
+
+async function runWhatIf() {
+
+    const a =
+        +document.getElementById('att').value;
+
+    const s =
+        +document.getElementById('study').value;
+
+
+    document.getElementById('attVal').textContent =
+        a.toFixed(0) + '%';
+
+
+    document.getElementById('studyVal').textContent =
+        s.toFixed(1);
+
+
+    try {
+
+        const r = await fetch(
+            '{{ url_for("student_whatif") }}',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    attendance: a,
+                    study_hours: s
+                })
+            }
+        );
+
+
+        const d = await r.json();
+
+
+        if (!d.error) {
+
+            document.getElementById('simScore').textContent =
+                d.score.toFixed(1);
+
+            document.getElementById('simStatus').textContent =
+                d.status;
+
+            document.getElementById('simChange').textContent =
+                (d.change >= 0 ? '+' : '') +
+                d.change.toFixed(1);
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            'What-If request failed:',
+            error
+        );
+
+    }
+
+}
+
+
+runWhatIf();
+
+</script>
+<!-- LEARNING MATERIALS -->
+<section class="panel" style="margin-top:24px;">
+    <div class="section-title">
+        <div>
+            <span class="icon-bubble">📚</span>
+            <div>
+                <h2>Learning Materials</h2>
+                <small>Study material uploaded by your teacher</small>
+            </div>
+        </div>
+    </div>
+<div
+    style="
+        margin-top:20px;
+        padding:16px;
+        border-radius:14px;
+        background:#f0faf8;
+        border:1px solid #d5eeea;
+    "
+>
+    <span
+        style="
+            display:block;
+            font-size:12px;
+            font-weight:700;
+            color:#087f5b;
+            text-transform:uppercase;
+            letter-spacing:.5px;
+        "
+    >
+        Recommended for You
+    </span>
+
+    <b
+        id="materialRecommendation"
+        style="
+            display:block;
+            margin-top:6px;
+            font-size:16px;
+        "
+    >
+        Based on your current improvement area
+    </b>
+</div>
+    <div id="studentMaterials" style="margin-top:20px;">
+        <div class="muted">Loading learning materials...</div>
+    </div>
+</section>
+
+<script>
+async function loadStudentMaterials() {
+    const box = document.getElementById('studentMaterials');
+
+    try {
+        const response = await fetch('{{ url_for("student_materials") }}');
+        const data = await response.json();
+
+        if (data.error) {
+            box.innerHTML = '<div class="muted">' + data.error + '</div>';
+            return;
+        }
+
+        const materials = data.materials || [];
+const recommendation = document.getElementById('materialRecommendation');
+const improvementAreas = data.improvement_areas || [];
+
+if (improvementAreas.length > 0) {
+    recommendation.textContent =
+        'Learning materials for: ' + improvementAreas.join(', ');
+} else {
+    recommendation.textContent =
+        'General learning materials for your academic improvement';
+}
+        if (materials.length === 0) {
+            box.innerHTML =
+                '<div class="muted">No learning materials have been uploaded yet.</div>';
+            return;
+        }
+
+        let html = '';
+
+        materials.forEach(function(material) {
+            html +=
+                '<div style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px;margin-bottom:12px;border:1px solid #dbe7e7;border-radius:14px;flex-wrap:wrap;">' +
+                    '<div>' +
+                        '<b>📄 ' + material.filename + '</b>' +
+'<small style="display:block;margin-top:5px;color:#087f5b;">Focus Area: ' +
+(material.topic || 'General') +
+'</small>' +
+                        '<small style="display:block;margin-top:5px;color:#718096;">Learning material</small>' +
+                    '</div>' +
+                    '<a class="btn" href="' + material.url + '" target="_blank">Open Material</a>' +
+                '</div>';
+        });
+
+        box.innerHTML = html;
+
+    } catch (error) {
+        box.innerHTML =
+            '<div class="muted">Unable to load learning materials.</div>';
+    }
+}
+
+loadStudentMaterials();
+</script>
+<!-- PRACTICE QUIZ -->
+
+<section class="panel" style="margin-top:24px;">
+
+    <div class="section-title">
+        <div>
+            <span class="icon-bubble">📝</span>
+            <div>
+                <h2>Practice Quiz</h2>
+                <small>Practice questions for your learning improvement</small>
+            </div>
+        </div>
+        <span class="ai-status">● Practice</span>
+    </div>
+
+    <div id="practiceFocus" class="primary-insight">
+        <span>Recommended focus</span>
+        <b>Loading...</b>
+    </div>
+
+    <div id="practiceQuizBox" style="margin-top:20px;">
+        <div class="muted">
+            Your practice quiz is ready.
+        </div>
+    </div>
+
+    <button
+        id="practiceStartBtn"
+        type="button"
+        class="btn"
+        style="margin-top:18px;"
+        onclick="spiStartPracticeQuiz()">
+        Start Practice Quiz
+    </button>
+
+    <div
+        id="practiceQuizResult"
+        class="primary-insight"
+        style="display:none;margin-top:20px;">
+    </div>
+
+</section>
+
+
+<script>
+
+let spiQuizQuestions = [];
+
+
+async function spiLoadPracticeQuiz() {
+
+    const box = document.getElementById('practiceQuizBox');
+    const focus = document.getElementById('practiceFocus');
+
+    try {
+
+        const response = await fetch(
+            '{{ url_for("student_quiz") }}'
+        );
+
+        const data = await response.json();
+
+        if (data.error) {
+
+            box.innerHTML =
+                '<div class="muted">Unable to load practice quiz.</div>';
+
+            return;
+        }
+
+        spiQuizQuestions = data.questions || [];
+
+        const areas = data.focus_areas || [];
+
+        if (areas.length > 0) {
+
+            focus.innerHTML =
+                '<span>Recommended focus</span>' +
+                '<b>' + areas.join(', ') + '</b>';
+
+        } else {
+
+            focus.innerHTML =
+                '<span>Recommended focus</span>' +
+                '<b>Regular revision and practice</b>';
+        }
+
+        box.innerHTML =
+            '<div class="muted">' +
+            spiQuizQuestions.length +
+            ' practice questions are available.' +
+            '</div>';
+
+    } catch (error) {
+
+        box.innerHTML =
+            '<div class="muted">' +
+            'Unable to connect to the practice quiz.' +
+            '</div>';
+    }
+}
+
+
+function spiStartPracticeQuiz() {
+
+    if (spiQuizQuestions.length === 0) {
+
+        spiLoadPracticeQuiz();
+
+        return;
+    }
+
+    const box =
+        document.getElementById('practiceQuizBox');
+
+    let html = '';
+
+    spiQuizQuestions.forEach(function(item, index) {
+
+        html +=
+            '<div class="panel" style="margin-top:16px;padding:20px;">' +
+
+                '<h3>Q' +
+                (index + 1) +
+                '. ' +
+                item.question +
+                '</h3>' +
+
+                '<div style="margin-top:14px;">';
+
+        item.options.forEach(function(option, optionIndex) {
+
+            html +=
+                '<label style="' +
+                'display:block;' +
+                'padding:12px;' +
+                'margin:8px 0;' +
+                'border:1px solid #dbe7e7;' +
+                'border-radius:12px;' +
+                'cursor:pointer;' +
+                '">' +
+
+                    '<input ' +
+                    'type="radio" ' +
+                    'name="spiQuizQuestion' + index + '" ' +
+                    'value="' + optionIndex + '">' +
+
+                    '<span style="margin-left:8px;">' +
+                    option +
+                    '</span>' +
+
+                '</label>';
+
+        });
+
+        html +=
+                '</div>' +
+            '</div>';
+    });
+
+
+    html +=
+        '<button ' +
+        'type="button" ' +
+        'class="btn" ' +
+        'style="margin-top:20px;" ' +
+        'onclick="spiSubmitPracticeQuiz()">' +
+        'Submit Quiz' +
+        '</button>';
+
+
+    box.innerHTML = html;
+
+    document.getElementById(
+        'practiceQuizResult'
+    ).style.display = 'none';
+
+}
+
+
+function spiSubmitPracticeQuiz() {
+
+    let score = 0;
+    let attempted = 0;
+
+    spiQuizQuestions.forEach(function(item, index) {
+
+        const selected =
+            document.querySelector(
+                'input[name="spiQuizQuestion' +
+                index +
+                '"]:checked'
+            );
+
+        if (selected) {
+
+            attempted++;
+
+            if (
+                Number(selected.value) ===
+                Number(item.answer)
+            ) {
+
+                score++;
+            }
+        }
+    });
+
+
+    const total = spiQuizQuestions.length;
+
+    const percentage =
+        total > 0
+            ? (score / total) * 100
+            : 0;
+
+
+    let message = '';
+
+    if (percentage >= 80) {
+
+        message =
+            'Good practice performance. Continue regular revision.';
+
+    } else if (percentage >= 50) {
+
+        message =
+            'Keep practising. Review the questions you got wrong.';
+
+    } else {
+
+        message =
+            'More practice is recommended. Review the related concepts and try again.';
+    }
+
+
+    const result =
+        document.getElementById(
+            'practiceQuizResult'
+        );
+
+
+    result.style.display = 'block';
+
+
+    result.innerHTML =
+        '<span>Quiz Result</span>' +
+        '<b>' +
+        score +
+        '/' +
+        total +
+        ' correct (' +
+        percentage.toFixed(0) +
+        '%)' +
+        '</b>' +
+        '<br><br>' +
+        '<small>' +
+        'Attempted: ' +
+        attempted +
+        '/' +
+        total +
+        '</small>' +
+        '<br><br>' +
+        '<small>' +
+        message +
+        '</small>';
+
+
+    result.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+    });
+
+}
+
+
+spiLoadPracticeQuiz();
+
+</script>
+{% endblock %}

@@ -1,0 +1,368 @@
+{% extends 'base.html' %}{% block content %}
+<section class="dash-head teacher-hero"><div><div class="eyebrow">TEACHER WORKSPACE · CLASS INTELLIGENCE</div><h1>Teacher Dashboard</h1><p>Monitor class performance, identify students needing support, and use insights to guide academic action.</p></div><div class="head-badge">● Live local data</div></section>
+
+<section class="metric-grid teacher-metrics">
+<div class="metric"><span>Total Students</span><strong>{{ students|length }}</strong><small>Students in current dataset</small></div>
+<div class="metric"><span>Class Average</span><strong>{{ '%.1f'|format(avg) }}</strong><small>Performance score / 100</small></div>
+<div class="metric"><span>Avg Attendance</span><strong>{{ '%.1f'|format(avg_att) }}%</strong><small>Class attendance</small></div>
+<div class="metric danger"><span>High Priority</span><strong>{{ high }}</strong><small>Needs immediate review</small></div>
+</section>
+
+<section class="dashboard-grid teacher-top-grid">
+<section class="panel class-health">
+<div class="section-title"><div><span class="icon-bubble">📊</span><div><h2>Class Health</h2><small>Quick academic snapshot</small></div></div><span class="mini-label">{{ '%.0f'|format(avg) }}% score</span></div>
+<div class="health-track"><i data-width="{{ avg }}%" style="width: attr(data-width type(<percentage>));"></i></div>
+<div class="health-labels"><span>Needs Attention</span><span>Good</span><span>Excellent</span></div>
+<div class="health-grid">
+<div><b>{{ high }}</b><span>High risk</span></div><div><b>{{ med }}</b><span>Medium risk</span></div><div><b>{{ students|length-high-med }}</b><span>Low risk</span></div>
+</div>
+<p class="muted">Risk is calculated from attendance, study hours, marks, practicals, assignments and quizzes using the project's configured rules.</p>
+</section>
+
+<section class="panel ai-panel">
+<div class="section-title"><div><span class="icon-bubble">🤖</span><div><h2>Teacher Assistant</h2><small>Ask questions using live class data</small></div></div><span class="ai-status">● Data Connected</span></div>
+<div class="quick-prompts"><button onclick="ask('Give me a class performance summary')">Class summary</button><button onclick="ask('Which students need attention?')">Need attention</button><button onclick="ask('Which students have low attendance?')">Low attendance</button><button onclick="ask('What are the common weak areas?')">Weak areas</button><button onclick="ask('Show highest performance students')">Top students</button><button onclick="ask('Suggest an intervention strategy')">Action ideas</button></div>
+<div id="chat" class="chat compact-chat"><div class="ai-msg">Hello! I can analyse the current class data. Ask me about performance, risk, attendance, weak areas, departments, or a student such as ST0001.</div></div>
+<form id="aiForm" class="chat-form"><input id="q" placeholder="Ask: Which students need attention?" required><button class="btn">Send</button></form>
+</section>
+</section>
+
+<section class="dashboard-grid teacher-mid-grid">
+<section class="panel">
+<div class="section-title"><div><span class="icon-bubble">🚨</span><div><h2>Risk & Action Center</h2><small>Students requiring review</small></div></div><a class="view-link" href="#students">View all →</a></div>
+<div class="action-list">
+{% for s in students if s.Risk_Level == 'High' %}<a class="action-item high" href="{{ url_for('teacher_student', student_id=s.Student_ID) }}"><span class="avatar">{{ s.Name[0] }}</span><div><b>{{ s.Name }}</b><small>{{ s.Student_ID }} · {{ s.Primary_Insight }}</small></div><span class="badge high">High · {{ s.Risk_Score }}</span></a>{% else %}<p class="muted">No high-risk students currently flagged.</p>{% endfor %}
+{% for s in students if s.Risk_Level == 'Medium' %}{% if loop.index <= 4 %}<a class="action-item" href="{{ url_for('teacher_student', student_id=s.Student_ID) }}"><span class="avatar">{{ s.Name[0] }}</span><div><b>{{ s.Name }}</b><small>{{ s.Student_ID }} · {{ s.Primary_Insight }}</small></div><span class="badge medium">Medium · {{ s.Risk_Score }}</span></a>{% endif %}{% endfor %}
+</div></section>
+
+<section class="panel">
+<div class="section-title"><div><span class="icon-bubble">🎯</span><div><h2>Common Improvement Areas</h2><small>Across the current class</small></div></div></div>
+{% set area_counts = {} %}{% for s in students %}{% for a in s.Improvement_Areas %}{% set _ = area_counts.update({a: area_counts.get(a, 0) + 1}) %}{% endfor %}{% endfor %}
+{% set sorted_areas = area_counts.items()|sort(attribute=1, reverse=true) %}
+<div class="area-bars">{% for a,n in sorted_areas[:6] %}<div class="area-row"><div><span>{{ a }}</span><b>{{ n }}</b></div><div class="area-track"><i style="width:{{ (n / students|length * 100)|round(0) }}%"></i></div></div>{% else %}<p class="muted">No prominent improvement area.</p>{% endfor %}</div>
+</section>
+</section>
+</section>
+<!-- LEARNING MATERIAL UPLOAD -->
+<section class="panel" style="margin-top:24px;">
+    <div class="section-title">
+        <div>
+            <span class="icon-bubble">📚</span>
+            <div>
+                <h2>Learning Material</h2>
+                <small>Upload study material for students</small>
+            </div>
+        </div>
+        <span class="ai-status">● Teacher Only</span>
+    </div>
+
+    <form id="materialUploadForm" style="margin-top:20px;">
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+            <input
+                type="file"
+                id="materialFile"
+                name="material"
+                accept=".pdf,.docx,.txt,.md"
+                required
+                style="flex:1;min-width:240px;"
+            >
+<select
+    id="materialTopic"
+    name="topic"
+    required
+    style="flex:1;min-width:240px;padding:12px;border:1px solid #dbe7e7;border-radius:12px;"
+>
+    <option value="">Select competency area</option>
+    <option value="Attendance">Attendance</option>
+    <option value="Study Hours">Study Hours</option>
+    <option value="Assignment">Assignment</option>
+    <option value="Quiz">Quiz</option>
+    <option value="Practical">Practical</option>
+    <option value="Internal Marks">Internal Marks</option>
+    <option value="Final Marks">Final Marks</option>
+    <option value="General">General</option>
+</select>
+            <button type="submit" class="btn">
+                Upload Material
+            </button>
+        </div>
+
+        <div
+            id="materialUploadResult"
+            style="margin-top:16px;"
+        ></div>
+    </form>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:20px;">
+
+    <input
+        type="text"
+        id="materialSearch"
+        placeholder="Search material..."
+        oninput="filterTeacherMaterials()"
+        style="flex:1;min-width:220px;padding:12px;border:1px solid #dbe7e7;border-radius:12px;"
+    >
+
+    <select
+        id="materialTopicFilter"
+        onchange="filterTeacherMaterials()"
+        style="min-width:220px;padding:12px;border:1px solid #dbe7e7;border-radius:12px;"
+    >
+        <option value="">All focus areas</option>
+        <option value="Attendance">Attendance</option>
+        <option value="Study Hours">Study Hours</option>
+        <option value="Assignment">Assignment</option>
+        <option value="Quiz">Quiz</option>
+        <option value="Practical">Practical</option>
+        <option value="Internal Marks">Internal Marks</option>
+        <option value="Final Marks">Final Marks</option>
+        <option value="General">General</option>
+    </select>
+
+</div>
+    <div id="teacherMaterials" style="margin-top:24px;">
+    <div class="muted">Loading uploaded materials...</div>
+</div>
+
+<script>
+async function loadTeacherMaterials() {
+    const box = document.getElementById('teacherMaterials');
+
+    try {
+        const response = await fetch('{{ url_for("teacher_materials") }}');
+        const data = await response.json();
+
+        const materials = data.materials || [];
+
+        if (materials.length === 0) {
+            box.innerHTML =
+                '<div class="muted">No materials uploaded yet.</div>';
+            return;
+        }
+
+        let html = '';
+
+        materials.forEach(function(material) {
+            html +=
+                '<div class="teacher-material-item"' +
+                ' data-filename="' + material.filename.toLowerCase() + '"' +
+                ' data-topic="' + (material.topic || 'General') + '"' +
+                ' style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px;margin-bottom:12px;border:1px solid #dbe7e7;border-radius:14px;flex-wrap:wrap;">' +
+
+                    '<div>' +
+                        '<b>📄 ' + material.filename + '</b>' +
+                        '<small style="display:block;margin-top:5px;color:#087f5b;">Focus Area: ' +
+                            (material.topic || 'General') +
+                        '</small>' +
+                    '</div>' +
+
+                    '<button type="button" class="btn" onclick="deleteTeacherMaterial(\'' +
+                        encodeURIComponent(material.filename) +
+                    '\')">Delete</button>' +
+
+                '</div>';
+        });
+
+        box.innerHTML = html;
+
+    } catch (error) {
+        box.innerHTML =
+            '<div class="muted">Unable to load materials.</div>';
+    }
+}
+async function deleteTeacherMaterial(encodedFilename) {
+
+    const filename = decodeURIComponent(encodedFilename);
+
+    if (!confirm('Delete this learning material?')) {
+        return;
+    }
+
+    try {
+
+        const response = await fetch(
+            '/teacher/delete-material/' + encodeURIComponent(filename),
+            {
+                method: 'POST'
+            }
+        );
+
+        const data = await response.json();
+
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+
+        alert('Material deleted successfully.');
+
+        loadTeacherMaterials();
+
+    } catch (error) {
+
+        alert('Unable to delete material.');
+
+    }
+}
+
+loadTeacherMaterials();
+</script>
+</section>
+
+<script>
+document.getElementById('materialUploadForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const fileInput = document.getElementById('materialFile');
+    const result = document.getElementById('materialUploadResult');
+
+    if (!fileInput.files.length) {
+        result.innerHTML = '<span class="muted">Please select a file.</span>';
+        return;
+    }
+const topicInput = document.getElementById('materialTopic');
+
+if (!topicInput.value) {
+    result.innerHTML =
+        '<span style="color:#b42318;">Please select a competency area before uploading.</span>';
+    return;
+}
+    const formData = new FormData();
+    formData.append('material', fileInput.files[0]);
+    formData.append(
+    'topic',
+    document.getElementById('materialTopic').value
+);
+
+    result.innerHTML = '<span class="muted">Uploading...</span>';
+
+    try {
+        const response = await fetch('{{ url_for("teacher_upload_material") }}', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            result.innerHTML =
+                '<span style="color:#b42318;">' + data.error + '</span>';
+        } else {
+            result.innerHTML =
+                '<span style="color:#087f5b;">✓ ' +
+                data.message +
+                '<br><small>' +
+                data.filename +
+                '</small></span>';
+
+            fileInput.value = '';
+        }
+
+    } catch (error) {
+        result.innerHTML =
+            '<span style="color:#b42318;">Upload failed. Please try again.</span>';
+    }
+});
+</script>
+<!-- CLASS COMPETENCY ANALYSIS -->
+<section class="panel" style="margin-top:24px;">
+<div class="section-title">
+    <div>
+        <span class="icon-bubble">🧠</span>
+        <div>
+            <h2>Class Competency Analysis</h2>
+            <small>Identify common competency gaps across the class</small>
+        </div>
+    </div>
+    <span class="ai-status">● Data Connected</span>
+</div>
+
+{% set competency_counts = {} %}
+
+{% for s in students %}
+    {% for area in s.Improvement_Areas %}
+        {% set _ = competency_counts.update({
+            area: competency_counts.get(area, 0) + 1
+        }) %}
+    {% endfor %}
+{% endfor %}
+
+{% set competency_sorted = competency_counts.items()|sort(attribute=1, reverse=true) %}
+
+<div class="health-grid" style="margin-top:20px;">
+
+{% for area, count in competency_sorted[:6] %}
+
+<div>
+    <b>{{ count }}</b>
+    <span>{{ area }}</span>
+    <small style="display:block;margin-top:6px;color:#718096;">
+        {{ '%.1f'|format(count / students|length * 100) }}% of class
+    </small>
+</div>
+
+{% else %}
+
+<div>
+    <b>0</b>
+    <span>No gaps identified</span>
+</div>
+
+{% endfor %}
+
+</div>
+
+<div style="margin-top:24px;">
+
+{% for area, count in competency_sorted[:6] %}
+
+<div class="area-row" style="margin-bottom:16px;">
+    <div>
+        <span>{{ area }}</span>
+        <b>{{ count }} students</b>
+    </div>
+
+    <div class="area-track">
+        <i style="width:{{ (count / students|length * 100)|round(0) }}%"></i>
+    </div>
+</div>
+
+{% endfor %}
+
+</div>
+
+<div class="primary-insight" style="margin-top:20px;">
+    <span>Teacher Insight</span>
+
+    {% if competency_sorted %}
+        <b>
+            The most common competency gap is
+            {{ competency_sorted[0][0] }}
+            affecting {{ competency_sorted[0][1] }}
+            students.
+        </b>
+    {% else %}
+        <b>No major competency gaps are currently identified.</b>
+    {% endif %}
+</div>
+
+</section>
+
+<section class="panel" id="students">
+<div class="section-title"><div><span class="icon-bubble">👥</span><div><h2>All Students</h2><small>Teacher-only complete class view · click View for detailed insight</small></div></div><div class="filters"><input id="search" placeholder="Search name or ID..." oninput="filterRows()"><select id="dept" onchange="filterRows()"><option value="">All departments</option>{% for d in departments %}<option>{{ d }}</option>{% endfor %}</select><select id="risk" onchange="filterRows()"><option value="">All risk levels</option><option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option></select></div></div>
+<div class="table-wrap"><table id="studentTable"><thead><tr><th>Student</th><th>Department</th><th>Performance</th><th>Attendance</th><th>Risk</th><th>Insight</th><th></th></tr></thead><tbody>{% for s in students %}<tr data-name="{{ s.Name|lower }}" data-id="{{ s.Student_ID|lower }}" data-dept="{{ s.Department }}" data-risk="{{ s.Risk_Level }}"><td><div class="student-cell"><span class="avatar">{{ s.Name[0] }}</span><div><b>{{ s.Name }}</b><small>{{ s.Student_ID }}</small></div></div></td><td>{{ s.Department }}</td><td><b>{{ s.Performance_Score }}</b><div class="mini-bar"><i style="width:{{ s.Performance_Score }}%"></i></div></td><td>{{ '%.1f'|format(s.Attendance) }}%</td><td><span class="badge {{ s.Risk_Level|lower }}">{{ s.Risk_Level }} · {{ s.Risk_Score }}</span></td><td>{{ s.Primary_Insight }}</td><td><a class="view-link" href="{{ url_for('teacher_student', student_id=s.Student_ID) }}">View →</a></td></tr>{% endfor %}</tbody></table></div>
+</section>
+
+
+
+
+
+    
+</section>
+<script>
+const f=document.getElementById('aiForm'),q=document.getElementById('q'),c=document.getElementById('chat');
+function add(cls,t){const d=document.createElement('div');d.className=cls;d.textContent=t;c.appendChild(d);c.scrollTop=c.scrollHeight;return d}
+function ask(t){q.value=t;f.dispatchEvent(new Event('submit',{cancelable:true,bubbles:true}))}
+f.onsubmit=async(e)=>{e.preventDefault();if(!q.value.trim())return;const question=q.value.trim();add('user-msg',question);q.value='';const typing=add('ai-msg typing','Analysing class data…');try{const r=await fetch('{{ url_for("teacher_ai") }}',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question})});const d=await r.json();typing.remove();add('ai-msg',d.answer||'No answer returned.')}catch(err){typing.remove();add('ai-msg','Assistant could not be reached. Please try again.')}};
+function filterRows(){const s=document.getElementById('search').value.toLowerCase(),d=document.getElementById('dept').value,r=document.getElementById('risk').value;document.querySelectorAll('#studentTable tbody tr').forEach(row=>{const okS=!s||row.dataset.name.includes(s)||row.dataset.id.includes(s);const okD=!d||row.dataset.dept===d;const okR=!r||row.dataset.risk===r;row.style.display=okS&&okD&&okR?'':'none'})}
+</script>
+{% endblock %}
